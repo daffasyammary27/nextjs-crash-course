@@ -64,6 +64,50 @@ EventSchema.pre('save', function () {
   }
 });
 
+EventSchema.pre(['findOneAndUpdate', 'updateOne', 'updateMany'], function () {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const update = this.getUpdate() as any;
+  if (!update) return;
+
+  const title = update.title || update.$set?.title;
+  if (title) {
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '');
+    
+    if (update.$set) {
+      update.$set.slug = slug;
+    } else {
+      update.slug = slug;
+    }
+  }
+
+  const date = update.date || update.$set?.date;
+  if (date) {
+    const parsedDate = new Date(date);
+    if (isNaN(parsedDate.getTime())) {
+      throw new Error('Invalid date format provided for Event.');
+    }
+    const isoDate = parsedDate.toISOString();
+    if (update.$set) {
+      update.$set.date = isoDate;
+    } else {
+      update.date = isoDate;
+    }
+  }
+
+  const time = update.time || update.$set?.time;
+  if (time) {
+    const trimmedTime = time.trim();
+    if (update.$set) {
+      update.$set.time = trimmedTime;
+    } else {
+      update.time = trimmedTime;
+    }
+  }
+});
+
 const Event = models.Event || model<IEvent>('Event', EventSchema);
 
 export default Event;

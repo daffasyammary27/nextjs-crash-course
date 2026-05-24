@@ -35,6 +35,20 @@ BookingSchema.pre('save', async function () {
   }
 });
 
+BookingSchema.pre(['findOneAndUpdate', 'updateOne', 'updateMany'], async function () {
+  this.setOptions({ runValidators: true });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const update = this.getUpdate() as any;
+  const eventId = update?.eventId || update?.$set?.eventId;
+  
+  if (eventId) {
+    const eventExists = await Event.exists({ _id: eventId });
+    if (!eventExists) {
+      throw new Error('The referenced Event does not exist.');
+    }
+  }
+});
+
 const Booking = models.Booking || model<IBooking>('Booking', BookingSchema);
 
 export default Booking;
