@@ -17,7 +17,7 @@ const Page = () => {
 
                 <ul className="events list-none">
                     {events.map((event) => (        //For loop like
-                        <li key={event.title}>
+                        <li key={event.slug}>
                             <EventCard {...event} />
                         </li>
                     ))}
